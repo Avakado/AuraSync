@@ -10,34 +10,83 @@ import type { ExplorationItem } from "@/lib/types";
 
 export default function Explorations() {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const col1Ref = useRef<HTMLDivElement | null>(null);
+  const col2Ref = useRef<HTMLDivElement | null>(null);
   const [activeItem, setActiveItem] = useState<ExplorationItem | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const containerHeight = rect.height;
-      const scrolled = -rect.top;
-      const scrollableHeight = containerHeight - window.innerHeight;
+    if (typeof window === "undefined") return;
 
-      if (scrollableHeight > 0) {
-        const progress = Math.max(0, Math.min(scrolled / scrollableHeight, 1));
-        setScrollProgress(progress);
+    let rafId: number | null = null;
+    let pending = false;
+    let mobile = window.innerWidth < 768;
+    let visible = true;
+
+    const apply = () => {
+      rafId = null;
+      pending = false;
+      const container = containerRef.current;
+      const col1 = col1Ref.current;
+      const col2 = col2Ref.current;
+      if (!container || !col1 || !col2) return;
+
+      if (mobile || !visible) {
+        col1.style.transform = "translate3d(0, 0, 0)";
+        col2.style.transform = "translate3d(0, 0, 0)";
+        return;
       }
+
+      const rect = container.getBoundingClientRect();
+      const scrollableHeight = rect.height - window.innerHeight;
+      if (scrollableHeight <= 0) return;
+
+      const progress = Math.max(0, Math.min(-rect.top / scrollableHeight, 1));
+      const y = progress * 160;
+      col1.style.transform = `translate3d(0, ${-y}px, 0)`;
+      col2.style.transform = `translate3d(0, ${y}px, 0)`;
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => {
+      if (pending) return;
+      pending = true;
+      rafId = requestAnimationFrame(apply);
+    };
+
+    const onResize = () => {
+      mobile = window.innerWidth < 768;
+      apply();
+    };
+
+    // Only run parallax math when the section is in / near the viewport.
+    let io: IntersectionObserver | null = null;
+    if (containerRef.current && "IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        ([entry]) => {
+          visible = entry.isIntersecting;
+          if (visible) apply();
+        },
+        { rootMargin: "150px 0px" },
+      );
+      io.observe(containerRef.current);
+    }
+
+    if (col1Ref.current) col1Ref.current.style.willChange = "transform";
+    if (col2Ref.current) col2Ref.current.style.willChange = "transform";
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    apply();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (io) io.disconnect();
+    };
   }, []);
 
   const col1 = EXPLORATIONS.slice(0, 3);
   const col2 = EXPLORATIONS.slice(3, 6);
-
-  const isMobile =
-    typeof window !== "undefined" && window.innerWidth < 768;
-  const y1 = isMobile ? 0 : scrollProgress * -160;
-  const y2 = isMobile ? 0 : scrollProgress * 160;
 
   return (
     <section
@@ -105,8 +154,8 @@ export default function Explorations() {
       <div className="relative mt-8 md:-mt-[160vh] max-w-[1400px] mx-auto pointer-events-auto z-20 px-6 md:px-12 flex justify-end">
         <div className="w-full md:w-6/12 grid grid-cols-2 gap-4 md:gap-8 overflow-visible">
           <div
-            className="flex flex-col gap-6 md:gap-10 transition-transform duration-100 ease-out"
-            style={{ transform: `translateY(${y1}px)` }}
+            ref={col1Ref}
+            className="flex flex-col gap-6 md:gap-10 will-change-transform"
           >
             {col1.map((item) => (
               <div
@@ -138,8 +187,8 @@ export default function Explorations() {
           </div>
 
           <div
-            className="flex flex-col gap-6 md:gap-10 transition-transform duration-100 ease-out"
-            style={{ transform: `translateY(${y2}px)` }}
+            ref={col2Ref}
+            className="flex flex-col gap-6 md:gap-10 will-change-transform"
           >
             {col2.map((item) => (
               <div

@@ -62,34 +62,81 @@ export default function ContactFooter() {
     const video = videoRef.current;
     if (!video) return;
     let hls: Hls | null = null;
+    let started = false;
 
-    if (Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(STREAM_URL);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(() => {});
-      });
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = STREAM_URL;
-      video.addEventListener("loadedmetadata", () => {
-        video.play().catch(() => {});
-      });
+    const startStream = () => {
+      if (started || !video) return;
+      started = true;
+
+      if (Hls.isSupported()) {
+        hls = new Hls({ maxBufferLength: 8, maxMaxBufferLength: 16 });
+        hls.loadSource(STREAM_URL);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(() => {});
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = STREAM_URL;
+        video.addEventListener("loadedmetadata", () => {
+          video.play().catch(() => {});
+        });
+      }
+    };
+
+    // Defer HLS init + decoding until the footer is actually visible. The
+    // background was paying decode/composite cost on every frame even when the
+    // user was at the top of the page.
+    let io: IntersectionObserver | null = null;
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            startStream();
+            video.play().catch(() => {});
+          } else if (started) {
+            video.pause();
+          }
+        },
+        { rootMargin: "200px 0px" },
+      );
+      io.observe(video);
+    } else {
+      startStream();
     }
 
     return () => {
+      if (io) io.disconnect();
       if (hls) hls.destroy();
     };
   }, []);
 
   useEffect(() => {
-    if (!marqueeRef.current) return;
-    gsap.to(".marquee-elements", {
+    const marquee = marqueeRef.current;
+    if (!marquee) return;
+
+    const tween = gsap.to(".marquee-elements", {
       xPercent: -50,
       duration: 25,
       ease: "none",
       repeat: -1,
     });
+
+    let io: IntersectionObserver | null = null;
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) tween.play();
+          else tween.pause();
+        },
+        { rootMargin: "150px 0px" },
+      );
+      io.observe(marquee);
+    }
+
+    return () => {
+      if (io) io.disconnect();
+      tween.kill();
+    };
   }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {

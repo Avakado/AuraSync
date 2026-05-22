@@ -83,9 +83,20 @@ html {
 }
 
 .glow-aura {
-  filter: blur(140px);
+  /* Was 140px — the off-screen blur bitmap grew quadratically with radius and
+   * was the biggest single texture-memory cost on the page. 80px is visually
+   * indistinguishable for a soft radial glow but ~3× cheaper to rasterise. */
+  filter: blur(80px);
   opacity: 0.35;
   background: radial-gradient(circle, var(--accent-light) 0%, var(--accent-dark) 100%);
+  /* Promote to GPU compositor layer so the heavy filter stays off the main thread */
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  pointer-events: none;
+  /* The glow never receives clicks, never overflows its box, and can be skipped
+   * during paint when it's off-screen — let the browser optimise it. */
+  contain: layout paint;
 }
 
 .bg-halftone {
@@ -94,12 +105,63 @@ html {
   opacity: 0.04;
 }
 
+/*
+ * Lightweight GPU-acceleration helper.
+ * Apply to any expensive, static effect (glow, backdrop-filter, large blur)
+ * that should live on its own compositor layer instead of repainting on scroll.
+ */
+.gpu-promoted {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/*
+ * Skip layout / paint / render work for whole sections while they're far below
+ * the fold. The browser still allocates space (`contain-intrinsic-size`) so the
+ * scrollbar stays stable, but it avoids rasterising the heavy halftones,
+ * gradient overlays, and image grids until the user actually scrolls there.
+ *
+ * `auto 1px 1200px` lets the browser remember each section's last rendered
+ * height so we don't get scroll jumps after the first paint.
+ *
+ * Avoid combining with sticky / position children — they need continuous layout.
+ */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1200px;
+}
+
+/*
+ * Auto-promote every element carrying a Tailwind `backdrop-blur-*` utility
+ * (selectors like `backdrop-blur-sm`, `backdrop-blur-md`, `backdrop-blur-lg`, …).
+ * Cap each one to a soft 12px to slash GPU cost without a visible difference.
+ * Components that need a softer blur still win via more-specific Tailwind
+ * variants (e.g. `backdrop-blur-sm` keeps its 4px override).
+ */
+[class*="backdrop-blur-"] {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+[class*="backdrop-blur-lg"],
+[class*="backdrop-blur-xl"],
+[class*="backdrop-blur-2xl"],
+[class*="backdrop-blur-3xl"] {
+  --tw-backdrop-blur: blur(12px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   transition: background 0.5s, border-color 0.5s;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 @keyframes scroll-down {
@@ -159,10 +221,13 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.15);
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
     background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .liquid-glass-button:hover {
-  transform: scale(1.05);
+  transform: scale(1.05) translateZ(0);
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25),
@@ -170,7 +235,7 @@ html {
 }
 
 .liquid-glass-button:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateZ(0);
 }
 
 [data-theme="light"] .liquid-glass-button {
@@ -196,18 +261,21 @@ html {
   padding: 0.95rem 1.75rem;
   border-radius: 9999px;
   background: linear-gradient(135deg, rgba(137, 170, 204, 0.2) 0%, rgba(78, 133, 191, 0.1) 100%);
-  backdrop-filter: blur(50px);
-  -webkit-backdrop-filter: blur(50px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15),
     inset 0 1px 1px rgba(255, 255, 255, 0.25);
   color: #ffffff;
   border: 1.5px solid rgba(255, 255, 255, 0.3);
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
     background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .liquid-glass-button-strong:hover {
-  transform: scale(1.05);
+  transform: scale(1.05) translateZ(0);
   background: linear-gradient(135deg, rgba(137, 170, 204, 0.35) 0%, rgba(78, 133, 191, 0.25) 100%);
   border-color: rgba(255, 255, 255, 0.5);
   box-shadow: 0 15px 35px rgba(137, 170, 204, 0.3),
@@ -215,7 +283,7 @@ html {
 }
 
 .liquid-glass-button-strong:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateZ(0);
 }
 
 [data-theme="light"] .liquid-glass-button-strong {
@@ -361,6 +429,10 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(244, 237, 224, 0.78);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .footer-legal-link {
@@ -437,6 +509,23 @@ html {
 
 .animate-hero-orbit {
   animation: hero-orbit 22s linear infinite;
+}
+
+/* When the hero scrolls out of the viewport, suspend its decorative animations
+ * via the .hero-paused class (toggled by the hero IntersectionObserver). */
+.hero-paused .animate-hero-float,
+.hero-paused .animate-hero-glow,
+.hero-paused .animate-hero-orbit {
+  animation-play-state: paused;
+}
+
+/* Respect the OS-level reduced-motion preference for all our infinite loops. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-float,
+  .animate-hero-glow,
+  .animate-hero-orbit {
+    animation: none !important;
+  }
 }
 
 .hero-title-shimmer {

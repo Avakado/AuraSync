@@ -99,14 +99,21 @@ export default function HomeClient() {
         </div>
       </div>
 
-      <div className="relative z-10 border-t border-stroke bg-bg">
+      <div className="relative z-10 border-t border-stroke bg-bg cv-auto">
         <SoundStream />
       </div>
 
-      <SelectedWorks />
-      <Journal />
+      <div className="cv-auto">
+        <SelectedWorks />
+      </div>
+      <div className="cv-auto">
+        <Journal />
+      </div>
+      {/* Explorations uses md:sticky inside, so it cannot be content-visibility:auto */}
       <Explorations />
-      <Stats />
+      <div className="cv-auto">
+        <Stats />
+      </div>
       <ContactFooter />
     </div>
   );

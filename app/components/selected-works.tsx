@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { gsap } from "gsap";
 import {
   ArrowRight,
   Sparkles,
@@ -16,33 +15,99 @@ import {
 import { PROJECTS } from "@/lib/data/projects";
 import type { Project } from "@/lib/types";
 
+// Maximum vertical drift, in px, that a card may travel from its natural
+// position. Keeping this small avoids overlapping the section title above.
+const PARALLAX_MAX = 28;
+
 export default function SelectedWorks() {
   const [activeJourney, setActiveJourney] = useState<Project | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const cards = document.querySelectorAll(".parallax-audio-card");
-      if (!cards.length) return;
+    if (typeof window === "undefined") return;
 
-      if (window.innerWidth < 768) {
-        cards.forEach((card) => gsap.set(card, { y: 0 }));
+    const section = document.getElementById("selected-works");
+    const grid = section?.querySelector<HTMLElement>(
+      ".parallax-grid",
+    );
+    const cards = Array.from(
+      document.querySelectorAll<HTMLElement>(".parallax-audio-card"),
+    );
+    if (!section || !grid || !cards.length) return;
+
+    let rafId: number | null = null;
+    let pending = false;
+    let mobile = window.innerWidth < 768;
+    let visible = true;
+
+    const apply = () => {
+      rafId = null;
+      pending = false;
+      if (mobile || !visible) {
+        for (let i = 0; i < cards.length; i++) {
+          cards[i].style.transform = "translate3d(0, 0, 0)";
+        }
         return;
       }
 
-      cards.forEach((card, idx) => {
-        const offsetMultiplier = idx % 2 === 0 ? -0.06 : 0.06;
-        const speed = window.scrollY * offsetMultiplier;
-        gsap.to(card, {
-          y: speed,
-          duration: 0.8,
-          ease: "power2.out",
-          overwrite: "auto",
-        });
-      });
+      // Compute progress in the range [-1, 1] based on how far the grid's
+      // centre is from the viewport's centre. This means offsets stay bounded
+      // and reset to zero when the grid is roughly centered on screen.
+      const rect = grid.getBoundingClientRect();
+      const viewportH = window.innerHeight;
+      const gridCenter = rect.top + rect.height / 2;
+      const viewportCenter = viewportH / 2;
+      const raw = (gridCenter - viewportCenter) / viewportH;
+      const progress = Math.max(-1, Math.min(1, raw));
+
+      for (let i = 0; i < cards.length; i++) {
+        const direction = i % 2 === 0 ? -1 : 1;
+        const y = progress * PARALLAX_MAX * direction;
+        cards[i].style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => {
+      if (pending) return;
+      pending = true;
+      rafId = requestAnimationFrame(apply);
+    };
+
+    const onResize = () => {
+      mobile = window.innerWidth < 768;
+      apply();
+    };
+
+    // Pause parallax math while the section is offscreen.
+    let io: IntersectionObserver | null = null;
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        ([entry]) => {
+          visible = entry.isIntersecting;
+          if (visible) apply();
+        },
+        { rootMargin: "200px 0px" },
+      );
+      io.observe(section);
+    }
+
+    for (let i = 0; i < cards.length; i++) {
+      cards[i].style.willChange = "transform";
+      cards[i].style.transform = "translate3d(0, 0, 0)";
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    apply();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (io) io.disconnect();
+      for (let i = 0; i < cards.length; i++) {
+        cards[i].style.willChange = "";
+      }
+    };
   }, []);
 
   return (
@@ -52,7 +117,7 @@ export default function SelectedWorks() {
     >
       <div className="absolute left-[-20%] top-[30%] w-[500px] h-[500px] rounded-full glow-aura pointer-events-none opacity-10" />
 
-      <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 space-y-12 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 space-y-12 md:space-y-16 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 select-none">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -93,7 +158,7 @@ export default function SelectedWorks() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pb-12">
+        <div className="parallax-grid grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pt-4 pb-12">
           {PROJECTS.map((journey) => (
             <div
               key={journey.id}
