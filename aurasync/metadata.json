@@ -1,0 +1,6 @@
+{
+  "name": "AuraSync",
+  "description": "A stylish, dark, neuro-manifestation platform and creative design ecosystem bridging brain science, neuroplasticity, and mind synchronization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
