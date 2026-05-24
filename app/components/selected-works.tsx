@@ -119,10 +119,13 @@ export default function SelectedWorks() {
 
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 space-y-12 md:space-y-16 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 select-none">
-          <div className="space-y-4">
+          <div className="space-y-4" data-reveal data-reveal-from="up">
             <div className="flex items-center gap-3">
               <Headphones className="w-5 h-5 text-accent-light" />
-              <span className="text-xs text-muted uppercase tracking-[0.3em] font-mono">
+              <span
+                className="text-xs text-muted uppercase tracking-[0.3em] font-mono"
+                data-section-pin
+              >
                 Neural Audio-Guides
               </span>
             </div>
@@ -140,7 +143,12 @@ export default function SelectedWorks() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center">
+          <div
+            className="flex flex-wrap gap-2 items-center"
+            data-reveal
+            data-reveal-from="right"
+            data-reveal-delay="0.1"
+          >
             <Link
               href="/info/acoustic-science"
               className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-[#89AACC] uppercase bg-white/5 border border-white/10 hover:border-accent-light hover:bg-white/10 py-3.5 px-6 rounded-full transition-all duration-300"
@@ -158,7 +166,11 @@ export default function SelectedWorks() {
           </div>
         </div>
 
-        <div className="parallax-grid grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pt-4 pb-12">
+        <div
+          className="parallax-grid grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pt-4 pb-12"
+          data-reveal
+          data-reveal-from="up"
+        >
           {PROJECTS.map((journey) => (
             <div
               key={journey.id}

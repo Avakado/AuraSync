@@ -1,24 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { motion } from "motion/react";
 import {
-  Menu,
-  X,
   Sparkles,
   Cpu,
   Compass,
   ChevronRight,
-  Sun,
-  Moon,
   ArrowDown,
   FolderSync,
   Activity,
   Volume2,
 } from "lucide-react";
 import MoireBackground from "./moire-background";
+import SiteNav from "./site-nav";
+import { useTheme } from "./theme-provider";
 import {
   InstagramIcon,
   LinkedinIcon,
@@ -28,9 +26,9 @@ import {
 type FrequencyKey = "432" | "528" | "639" | "7.83";
 
 export default function Hero() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const { theme, toggleTheme } = useTheme();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [activeTab, setActiveTab] = useState("Vibe Syncing");
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const [engagedActivity, setEngagedActivity] = useState<string | null>(null);
   const [selectedFreq, setSelectedFreq] = useState<FrequencyKey>("528");
@@ -42,8 +40,50 @@ export default function Hero() {
   );
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+    const tl = gsap.timeline();
+    tl.fromTo(
+      ".hero-glass-left",
+      { opacity: 0, x: -40 },
+      { opacity: 1, x: 0, duration: 1.2, ease: "power4.out" },
+    );
+    gsap.fromTo(
+      ".bento-float-card",
+      { opacity: 0, y: 24, scale: 0.98 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 1,
+        stagger: 0.12,
+        ease: "power3.out",
+        delay: 0.35,
+      },
+    );
+  }, []);
+
+  // Pause decorative loops + background video when the hero leaves the viewport.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const root = document.getElementById("hero-root");
+    if (!root || !("IntersectionObserver" in window)) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        const visible = entry.isIntersecting;
+        root.classList.toggle("hero-paused", !visible);
+        const video = videoRef.current;
+        if (!video) return;
+        if (visible) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { rootMargin: "80px 0px", threshold: 0.05 },
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     if (engagedActivity !== "breath") return;
@@ -105,166 +145,34 @@ export default function Hero() {
     }
   };
 
-  useEffect(() => {
-    const tl = gsap.timeline();
-    tl.fromTo(
-      ".hero-glass-left",
-      { opacity: 0, x: -40, filter: "blur(12px)" },
-      { opacity: 1, x: 0, filter: "blur(0px)", duration: 1.4, ease: "power4.out" }
-    );
-    gsap.fromTo(
-      ".bento-float-card",
-      { opacity: 0, y: 30, scale: 0.98 },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 1.2,
-        stagger: 0.15,
-        ease: "power3.out",
-        delay: 0.4,
-      }
-    );
-  }, []);
-
-  // Pause the hero's decorative loops (huge glow scale/opacity pulse + orbit
-  // + float on the flower mark) as soon as the user scrolls past the hero.
-  // While those loops are cheap individually, they keep the compositor busy
-  // 60 times a second; suspending them recovers ~5–8 ms/frame during scroll.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const root = document.getElementById("hero-root");
-    if (!root || !("IntersectionObserver" in window)) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        root.classList.toggle("hero-paused", !entry.isIntersecting);
-      },
-      { rootMargin: "100px 0px" },
-    );
-    io.observe(root);
-    return () => io.disconnect();
-  }, []);
-
-  const toggleTheme = () => setTheme((p) => (p === "dark" ? "light" : "dark"));
-
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) element.scrollIntoView({ behavior: "smooth" });
-    setMenuOpen(false);
   };
 
   return (
     <section
-      className="relative w-full min-h-screen bg-bg flex flex-col items-center justify-center p-4 md:p-6 lg:p-8 select-none overflow-hidden transition-colors duration-500"
+      className="relative w-full min-h-screen bg-bg flex flex-col items-center justify-center p-4 md:p-6 lg:p-8 select-none overflow-hidden transition-colors duration-500 hero-dashboard"
       id="hero-root"
     >
       <MoireBackground />
 
-      <div className="absolute top-[10%] right-[15%] w-96 h-96 rounded-full glow-aura pointer-events-none z-0 opacity-25 animate-hero-glow" />
-      <div
-        className="absolute bottom-[10%] left-[5%] w-[450px] h-[450px] rounded-full glow-aura pointer-events-none z-0 opacity-15 animate-hero-glow"
-        style={{ animationDelay: "2s" }}
-      />
+      <div className="absolute top-[12%] right-[12%] w-72 h-72 md:w-96 md:h-96 rounded-full glow-aura pointer-events-none z-0 opacity-20 animate-hero-glow hero-glow-primary" />
 
-      <nav className="w-full max-w-[1400px] z-50 flex items-center justify-between mb-4 md:mb-6 px-4">
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={() => scrollToSection("hero-root")}
-        >
-          <div className="relative w-9 h-9 flex items-center justify-center">
-            <div className="absolute inset-0 bg-accent-light/30 blur-md rounded-full animate-pulse" />
-            <svg width="28" height="28" viewBox="0 0 100 100">
-              <circle cx="35" cy="50" r="20" fill="var(--accent-light)" className="opacity-80" />
-              <circle cx="65" cy="50" r="20" fill="var(--accent-light)" className="opacity-80" />
-              <circle cx="50" cy="35" r="20" fill="var(--accent-dark)" className="opacity-80" />
-              <circle cx="50" cy="65" r="20" fill="var(--accent-dark)" className="opacity-80" />
-              <circle cx="50" cy="50" r="10" fill="#fff" />
-            </svg>
-          </div>
-          <span className="font-display italic text-lg tracking-tight text-text-primary uppercase font-bold">
-            AuraSync{" "}
-            <span className="text-[10px] font-mono tracking-widest text-accent-light ml-1 font-light opacity-80">
-              (mindset)
-            </span>
-          </span>
-        </div>
-
-        <div className="hidden md:flex items-center gap-2">
-          {[
-            { label: "Home", id: "hero-root", scroll: true, href: "#hero-root" },
-            { label: "Calibrator", id: "calculator-section", scroll: true, href: "/calibrator" },
-            { label: "Neural Audios", id: "selected-works", scroll: true, href: "/audio-guides" },
-            { label: "Practices", id: "journal-section", scroll: true, href: "/journal" },
-            { label: "Visual Grid", id: "explorations", scroll: true, href: "/explorations" },
-          ].map((link) => (
-            <button
-              key={link.label}
-              onClick={() => scrollToSection(link.id)}
-              className="liquid-glass-button text-[11px] font-mono tracking-wider font-bold !py-1.5 !px-3.5 cursor-pointer uppercase"
-            >
-              {link.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-full border border-stroke bg-surface/50 text-text-primary hover:border-accent-light/40 hover:scale-105 transition-all"
-            title="Calibrate Solar/Lunar Axis"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4 text-amber-300" />
-            ) : (
-              <Moon className="w-4 h-4 text-indigo-500" />
-            )}
-          </button>
-
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2.5 rounded-full border border-stroke bg-surface/50 text-text-primary hover:bg-stroke"
-            aria-label="Toggle navigation menu"
-          >
-            {menuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
-        </div>
-      </nav>
-
-      {menuOpen && (
-        <div className="w-full max-w-[1400px] z-50 bg-surface/95 backdrop-blur-md border border-stroke rounded-3xl p-6 mb-6 flex flex-col gap-4 shadow-2xl relative md:hidden">
-          <span className="text-[9px] font-mono text-muted uppercase tracking-widest border-b border-stroke pb-2 block">
-            Ecosystem Navigation
-          </span>
-          {[
-            { label: "Home Base", id: "hero-root" },
-            { label: "Vibe Calibrator", id: "calculator-section" },
-            { label: "Neural Soundscapes", id: "selected-works" },
-            { label: "Cognitive Journal", id: "journal-section" },
-            { label: "Visual Playground", id: "explorations" },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={() => scrollToSection(item.id)}
-              className="text-sm font-semibold text-text-primary text-left py-2 hover:text-accent-light transition-colors"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <SiteNav variant="inline" />
 
       <div className="w-full max-w-[1400px] grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch relative z-10">
         <div className="lg:col-span-5 flex flex-col justify-between hero-glass-left glass-panel rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-2xl relative overflow-hidden group/left border border-white/5">
           <div className="absolute inset-0 bg-gradient-to-tr from-accent-light/5 via-transparent to-transparent opacity-0 group-hover/left:opacity-100 transition-opacity duration-700 pointer-events-none z-10" />
 
           <video
+            ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-15 transition-opacity duration-500"
+            preload="metadata"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-[0.12] transition-opacity duration-500 hero-bg-video"
           >
             <source
               src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_064122_c4750c0e-7476-4b44-94a2-a85a65c63bf2.mp4"
@@ -275,7 +183,7 @@ export default function Hero() {
           <div className="flex items-center justify-between mt-1 mb-10 select-none relative z-10">
             <div className="flex items-center gap-1.5">
               <div className="w-7 h-7 flex items-center justify-center">
-                <svg width="22" height="22" viewBox="0 0 100 100" className="animate-pulse">
+                <svg width="22" height="22" viewBox="0 0 100 100">
                   <circle cx="35" cy="50" r="18" fill="var(--accent-light)" className="opacity-80" />
                   <circle cx="65" cy="50" r="18" fill="var(--accent-light)" className="opacity-80" />
                   <circle cx="50" cy="35" r="18" fill="var(--accent-dark)" className="opacity-80" />
@@ -318,7 +226,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, ease: "easeOut", delay: 0.55 }}
-              className="hero-title-card p-6 md:p-8 -mx-4 md:-mx-6 rounded-3xl backdrop-blur-md border shadow-inner select-none space-y-4 transition-all duration-300"
+              className="hero-title-card p-6 md:p-8 -mx-4 md:-mx-6 rounded-3xl border shadow-inner select-none space-y-4 transition-all duration-300"
             >
               <motion.h1
                 initial={{ opacity: 0, y: 12 }}
@@ -338,7 +246,7 @@ export default function Hero() {
                   <span className="text-[9px] font-mono tracking-wider uppercase text-[#89AACC] font-bold">
                     Select active wavelength:
                   </span>
-                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 </div>
 
                 <div className="grid grid-cols-4 gap-1.5 p-1 rounded-2xl bg-black/20 border border-white/5 hero-freq-grid">
@@ -520,7 +428,7 @@ export default function Hero() {
                       <div
                         key={i}
                         style={{ animationDelay: bar.delay }}
-                        className={`w-0.5 rounded-full animate-bounce ${
+                        className={`w-0.5 rounded-full hero-freq-bar ${
                           selectedFreq === "432"
                             ? "bg-amber-400/80"
                             : selectedFreq === "528"
@@ -653,7 +561,7 @@ export default function Hero() {
           </div>
 
           <div className="glass-panel rounded-3xl p-6 md:p-8 space-y-6 border border-white/10 bento-float-card flex flex-col justify-center relative overflow-hidden group/eco shadow-md">
-            <div className="absolute inset-0 bg-halftone pointer-events-none" />
+            <div className="absolute inset-0 bg-halftone hero-bento-halftone pointer-events-none" />
 
             <div className="flex items-center justify-between relative z-10 w-full col-span-1">
               <div className="flex items-center gap-2.5 text-accent-light select-none">

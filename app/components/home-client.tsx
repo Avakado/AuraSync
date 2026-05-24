@@ -6,11 +6,13 @@ import LoadingScreen from "./loading-screen";
 import Hero from "./hero";
 import VibrationCalculator from "./vibration-calculator";
 import SoundStream from "./sound-stream";
+import BinauralRhythms from "./binaural-rhythms";
 import SelectedWorks from "./selected-works";
 import Journal from "./journal";
 import Explorations from "./explorations";
 import Stats from "./stats";
 import ContactFooter from "./contact-footer";
+import ScrollReveal from "./scroll-reveal";
 
 const SESSION_KEY = "aurasync-loaded";
 
@@ -42,9 +44,22 @@ export default function HomeClient() {
 
   return (
     <div className="w-full bg-bg text-text-primary min-h-screen relative overflow-x-hidden selection:bg-accent-dark/40 selection:text-white">
-      <div className="absolute top-[30vh] left-0 w-80 h-80 glow-aura rounded-full z-0 pointer-events-none opacity-20" />
-      <div className="absolute top-[160vh] right-10 w-96 h-96 glow-aura rounded-full z-0 pointer-events-none opacity-15" />
-      <div className="absolute bottom-[20vh] left-5 w-[500px] h-[500px] glow-aura rounded-full z-0 pointer-events-none opacity-10" />
+      <ScrollReveal />
+      <div
+        className="absolute top-[30vh] left-0 w-80 h-80 glow-aura rounded-full z-0 pointer-events-none opacity-20"
+        data-parallax="-0.18"
+        data-parallax-max="120"
+      />
+      <div
+        className="absolute top-[160vh] right-10 w-96 h-96 glow-aura rounded-full z-0 pointer-events-none opacity-15"
+        data-parallax="0.22"
+        data-parallax-max="140"
+      />
+      <div
+        className="absolute bottom-[20vh] left-5 w-[500px] h-[500px] glow-aura rounded-full z-0 pointer-events-none opacity-10"
+        data-parallax="-0.12"
+        data-parallax-max="100"
+      />
 
       <Hero />
 
@@ -53,7 +68,11 @@ export default function HomeClient() {
         id="calculator-section"
       >
         <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-5 space-y-5 select-none text-center lg:text-left">
+          <div
+            className="lg:col-span-5 space-y-5 select-none text-center lg:text-left"
+            data-reveal
+            data-reveal-from="left"
+          >
             <div className="flex justify-center lg:justify-start items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-accent-light animate-ping" />
               <span className="text-[10px] font-mono tracking-widest text-accent-light uppercase">
@@ -93,7 +112,12 @@ export default function HomeClient() {
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div
+            className="lg:col-span-7"
+            data-reveal
+            data-reveal-from="right"
+            data-reveal-delay="0.15"
+          >
             <VibrationCalculator />
           </div>
         </div>
@@ -101,6 +125,10 @@ export default function HomeClient() {
 
       <div className="relative z-10 border-t border-stroke bg-bg cv-auto">
         <SoundStream />
+      </div>
+
+      <div className="cv-auto">
+        <BinauralRhythms />
       </div>
 
       <div className="cv-auto">

@@ -22,6 +22,7 @@
 }
 
 :root {
+  --site-header-h: 4.25rem;
   /* Night mode default */
   --bg: 0 0% 4%;
   --surface: 0 0% 8%;
@@ -34,6 +35,23 @@
   --accent-dark: #4E85BF;
   --glass-bg: rgba(10, 10, 10, 0.7);
   --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+.site-header {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+#hero-root,
+#calculator-section,
+#sound-stream,
+#binaural-rhythms,
+#selected-works,
+#journal-section,
+#stats-section,
+#subscription-form {
+  scroll-margin-top: calc(var(--site-header-h) + 0.75rem);
 }
 
 [data-theme="light"] {
@@ -515,8 +533,69 @@ html {
  * via the .hero-paused class (toggled by the hero IntersectionObserver). */
 .hero-paused .animate-hero-float,
 .hero-paused .animate-hero-glow,
-.hero-paused .animate-hero-orbit {
-  animation-play-state: paused;
+.hero-paused .animate-hero-orbit,
+.hero-paused .animate-pulse,
+.hero-paused .animate-bounce,
+.hero-paused .animate-spin,
+.hero-paused .animate-ping,
+.hero-paused .hero-title-shimmer,
+.hero-paused .hero-freq-bar {
+  animation-play-state: paused !important;
+}
+
+.hero-paused .hero-bg-video {
+  opacity: 0 !important;
+  visibility: hidden;
+}
+
+.hero-paused .hero-bento-halftone {
+  opacity: 0 !important;
+}
+
+.hero-dashboard {
+  contain: layout style;
+}
+
+.hero-bg-video {
+  will-change: opacity;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes hero-freq-bar {
+  0%,
+  100% {
+    transform: scaleY(0.65);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.hero-freq-bar {
+  transform-origin: bottom center;
+  animation: hero-freq-bar 1.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+/*
+ * Freeze every infinite decorative loop while the user is actively scrolling.
+ * Toggled by the <ScrollPerfBoost /> hook. Recovers compositor budget so the
+ * scroll itself stays at 60 fps, especially in the dense Hero / bento area.
+ */
+body.is-scrolling .animate-pulse,
+body.is-scrolling .animate-bounce,
+body.is-scrolling .animate-spin,
+body.is-scrolling .animate-ping,
+body.is-scrolling .animate-hero-float,
+body.is-scrolling .animate-hero-glow,
+body.is-scrolling .animate-hero-orbit,
+body.is-scrolling .hero-title-shimmer,
+body.is-scrolling .hero-freq-bar {
+  animation-play-state: paused !important;
+}
+
+body.is-scrolling .hero-bg-video {
+  opacity: 0 !important;
 }
 
 /* Respect the OS-level reduced-motion preference for all our infinite loops. */

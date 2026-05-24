@@ -22,10 +22,13 @@ export default function Journal() {
     <section className="bg-bg py-20 border-t border-stroke" id="journal-section">
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="space-y-4">
+          <div className="space-y-4" data-reveal data-reveal-from="up">
             <div className="flex items-center gap-3">
               <div className="w-8 h-[1px] bg-stroke shrink-0" />
-              <span className="text-xs text-muted uppercase tracking-[0.3em]">
+              <span
+                className="text-xs text-muted uppercase tracking-[0.3em]"
+                data-section-pin
+              >
                 Insights &amp; Science
               </span>
             </div>
@@ -43,7 +46,12 @@ export default function Journal() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div
+            className="flex flex-wrap gap-2"
+            data-reveal
+            data-reveal-from="right"
+            data-reveal-delay="0.1"
+          >
             <Link
               href="/info/cognitive-practices"
               className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-[#89AACC] uppercase bg-white/5 border border-white/10 hover:border-accent-light hover:bg-white/10 py-3.5 px-6 rounded-full transition-all duration-300"

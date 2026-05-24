@@ -101,8 +101,11 @@ export default function Stats() {
 
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 relative z-10 space-y-16">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 select-none">
-          <div className="space-y-4">
-            <span className="text-xs text-accent-light uppercase tracking-[0.25em] font-mono block">
+          <div className="space-y-4" data-reveal data-reveal-from="up">
+            <span
+              className="text-xs text-accent-light uppercase tracking-[0.25em] font-mono block"
+              data-section-pin
+            >
               empirical clinical outcome
             </span>
             <h2 className="text-4xl md:text-5xl font-sans tracking-tight text-text-primary uppercase font-bold leading-tight">

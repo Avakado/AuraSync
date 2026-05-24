@@ -384,6 +384,16 @@ export default function ContactFooter() {
             >
               Contact
             </Link>
+            <span
+              className="w-1 h-1 rounded-full bg-current opacity-50"
+              aria-hidden
+            />
+            <Link
+              href="/binaural-rhythms"
+              className="footer-legal-link transition-colors"
+            >
+              Binaural Rhythms
+            </Link>
           </div>
           <div className="footer-legal-tagline">
             Built with intentional resonance.

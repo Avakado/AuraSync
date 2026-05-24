@@ -330,10 +330,17 @@ export default function SoundStream({
       <div className="absolute bottom-0 left-[10%] w-72 h-72 rounded-full glow-aura pointer-events-none opacity-10" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 relative z-10">
-        <div className="lg:col-span-5 space-y-6">
+        <div
+          className="lg:col-span-5 space-y-6"
+          data-reveal
+          data-reveal-from="left"
+        >
           <div className="flex items-center gap-2 text-accent-light">
             <Radio className="w-4 h-4 animate-pulse" />
-            <span className="text-[11px] font-mono uppercase tracking-[0.3em] font-bold">
+            <span
+              className="text-[11px] font-mono uppercase tracking-[0.3em] font-bold"
+              data-section-pin
+            >
               {eyebrow}
             </span>
           </div>
@@ -415,7 +422,12 @@ export default function SoundStream({
           </div>
         </div>
 
-        <div className="lg:col-span-7">
+        <div
+          className="lg:col-span-7"
+          data-reveal
+          data-reveal-from="right"
+          data-reveal-delay="0.15"
+        >
           <div className="relative">
             <div className="absolute -top-3 left-6 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-bg border border-stroke text-[10px] font-mono uppercase tracking-widest text-accent-light z-10">
               <Disc3 className="w-3 h-3 animate-spin" />

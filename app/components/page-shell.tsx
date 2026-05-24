@@ -26,33 +26,15 @@ export default function PageShell({
       <div className="absolute top-[10%] right-[12%] w-96 h-96 rounded-full glow-aura pointer-events-none opacity-20" />
       <div className="absolute bottom-[15%] left-[5%] w-[450px] h-[450px] rounded-full glow-aura pointer-events-none opacity-10" />
 
-      <header className="relative z-10 max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 pt-10 md:pt-14 pb-6 flex flex-wrap items-center justify-between gap-4">
+      <section className="relative z-10 max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 pt-[calc(var(--site-header-h)+1.5rem)] md:pt-[calc(var(--site-header-h)+2rem)] pb-10">
         <Link
           href={backHref}
-          className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted hover:text-text-primary transition-colors mb-8"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>{backLabel}</span>
         </Link>
 
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-text-primary"
-        >
-          <svg width="22" height="22" viewBox="0 0 100 100">
-            <circle cx="35" cy="50" r="18" fill="var(--accent-light)" className="opacity-80" />
-            <circle cx="65" cy="50" r="18" fill="var(--accent-light)" className="opacity-80" />
-            <circle cx="50" cy="35" r="18" fill="var(--accent-dark)" className="opacity-80" />
-            <circle cx="50" cy="65" r="18" fill="var(--accent-dark)" className="opacity-80" />
-            <circle cx="50" cy="50" r="8" fill="#fff" />
-          </svg>
-          <span className="font-display italic text-base tracking-tight uppercase font-bold">
-            AuraSync
-          </span>
-        </Link>
-      </header>
-
-      <section className="relative z-10 max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 pb-10">
         <div className="space-y-5 max-w-3xl">
           {eyebrow && (
             <div className="flex items-center gap-2 text-accent-light">

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
+import AppShell from "./components/app-shell";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,10 +31,11 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="dark"
+      suppressHydrationWarning
       className={`${inter.variable} ${instrumentSerif.variable} antialiased`}
     >
       <body className="min-h-screen bg-bg text-text-primary selection:bg-accent-dark/40 selection:text-white">
-        {children}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
