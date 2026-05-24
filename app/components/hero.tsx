@@ -61,7 +61,7 @@ export default function Hero() {
     );
   }, []);
 
-  // Pause decorative loops + background video when the hero leaves the viewport.
+  // Pause decorative loops + left-card video when the hero leaves the viewport.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const root = document.getElementById("hero-root");

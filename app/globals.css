@@ -395,6 +395,44 @@ html {
   mix-blend-mode: screen;
 }
 
+.moire-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: 0;
+  margin-left: 0;
+  transform: translate3d(-50%, -50%, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.moire-layer-a {
+  animation: moire-spin-a 100s linear infinite;
+}
+
+.moire-layer-b {
+  animation: moire-spin-b 130s linear infinite reverse;
+}
+
+@keyframes moire-spin-a {
+  from {
+    transform: translate3d(-50%, -50%, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(-50%, -50%, 0) rotate(360deg);
+  }
+}
+
+@keyframes moire-spin-b {
+  from {
+    transform: translate3d(-50%, -50%, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(-50%, -50%, 0) rotate(360deg);
+  }
+}
+
 [data-theme="light"] .moire-gradient-filter {
   background: radial-gradient(circle at 50% 40%, rgba(251, 191, 36, 0.15) 0%, rgba(16, 185, 129, 0.1) 40%, rgba(255, 255, 255, 0.4) 80%);
   mix-blend-mode: color-burn;
@@ -539,7 +577,9 @@ html {
 .hero-paused .animate-spin,
 .hero-paused .animate-ping,
 .hero-paused .hero-title-shimmer,
-.hero-paused .hero-freq-bar {
+.hero-paused .hero-freq-bar,
+.hero-paused .moire-layer-a,
+.hero-paused .moire-layer-b {
   animation-play-state: paused !important;
 }
 
@@ -590,7 +630,9 @@ body.is-scrolling .animate-hero-float,
 body.is-scrolling .animate-hero-glow,
 body.is-scrolling .animate-hero-orbit,
 body.is-scrolling .hero-title-shimmer,
-body.is-scrolling .hero-freq-bar {
+body.is-scrolling .hero-freq-bar,
+body.is-scrolling .moire-layer-a,
+body.is-scrolling .moire-layer-b {
   animation-play-state: paused !important;
 }
 
@@ -599,6 +641,13 @@ body.is-scrolling .hero-bg-video {
 }
 
 /* Respect the OS-level reduced-motion preference for all our infinite loops. */
+@media (prefers-reduced-motion: reduce) {
+  .moire-layer-a,
+  .moire-layer-b {
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-float,
   .animate-hero-glow,
